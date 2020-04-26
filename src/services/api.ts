@@ -14,6 +14,7 @@ class Api {
   private getUrl(): void {
     if (process.env.NODE_ENV === 'production') {
       this.url = 'http://api-controle-moto.atwebpages.com/api';
+      return;
     }
 
     this.url = 'http://localhost:8000/api';
