@@ -20,6 +20,8 @@ function* requestToLogon({ payload }: IAction<Ilogon>) {
     if (status === 201) {
       localStorage.setItem('@rwr/token', JSON.stringify(response.data.token));
 
+      api.defaults.headers['Authorization'] = response.data.token;
+
       return yield put(
         responseToLogon({
           auth: true,
