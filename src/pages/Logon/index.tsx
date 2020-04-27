@@ -17,7 +17,7 @@ import {
   loadingToLogon,
 } from '../../store/redux/logon/actions';
 
-export default function Logon() {
+export const Logon = () => {
   const history = useHistory();
 
   const [userId, setUser] = useState('');
@@ -76,4 +76,4 @@ export default function Logon() {
       </SectionForm>
     </MainLogon>
   );
-}
+};

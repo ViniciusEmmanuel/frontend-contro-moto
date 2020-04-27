@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
 
-import Logon from './pages/Logon';
+import { Logon } from './pages/Logon';
 import { Header } from './pages/Header';
 import { Home } from './pages/Home';
 import { NewMaintenance } from './pages/NewMaintenance';
