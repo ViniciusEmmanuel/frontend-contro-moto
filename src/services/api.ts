@@ -13,7 +13,7 @@ class Api {
 
   private getUrl(): void {
     if (process.env.NODE_ENV === 'production') {
-      this.url = 'http://api-controle-moto.atwebpages.com/api';
+      this.url = 'https://app-controle-moto.herokuapp.com/api';
       return;
     }
 
