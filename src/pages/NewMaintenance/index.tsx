@@ -100,8 +100,8 @@ export const NewMaintenance = () => {
 
         <Form ref={formRef} onSubmit={handleSubmit}>
           <div className="content">
-            <SelectForm name="motorcicleId" autoFocus>
-              <option value="" disabled selected>
+            <SelectForm name="motorcicleId" defaultValue="default" autoFocus>
+              <option value="default" disabled>
                 Selecione
               </option>
               {motorcicles.map((item) => (
@@ -111,8 +111,8 @@ export const NewMaintenance = () => {
               ))}
             </SelectForm>
 
-            <SelectForm name="partId">
-              <option value="" disabled selected>
+            <SelectForm name="partId" defaultValue="default">
+              <option value="default" disabled>
                 Selecione
               </option>
               {parts.map((item) => (

@@ -96,8 +96,8 @@ export const NewGasoline = () => {
 
         <Form ref={formRef} onSubmit={handleSubmit}>
           <div className="content">
-            <SelectForm name="motorcicleId" autoFocus>
-              <option value="" disabled selected>
+            <SelectForm name="motorcicleId" defaultValue="default" autoFocus>
+              <option value="default" disabled>
                 Selecione
               </option>
               {motorcicles.map((item) => (
