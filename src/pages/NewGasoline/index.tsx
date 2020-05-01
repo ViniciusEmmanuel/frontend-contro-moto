@@ -1,25 +1,32 @@
-import React, { useState, FormEvent, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+
+import { SubmitHandler } from '@unform/core';
+import { Form } from '@unform/web';
+
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { FiArrowLeft } from 'react-icons/fi';
 import api from '../../services/api';
 
-import { InputForm } from '../../components/InputForm/styles';
-import { SelectForm } from '../../components/SelectForm/styles';
+import { Input as InputForm } from '../../components/InputForm';
+import { Select as SelectForm } from '../../components/SelectForm';
 import { Button } from '../../components/Button/styles';
 import { StyleLink } from '../../components/Link/styles';
 
 import { Container, Section } from './styles';
 import { Istate, IinicialState } from '../../interfaces/redux/home';
 
-export const NewGasoline = () => {
-  const [motorcicleId, setMotorcicleId] = useState('');
-  const [date, setDate] = useState('');
-  const [km, setKm] = useState('');
-  const [price, setPrice] = useState('');
-  const [liters, setLiters] = useState('');
+interface Iformdata {
+  motorcicleId: number;
+  date: string;
+  km: number;
+  price: number;
+  liters: number;
+}
 
+export const NewGasoline = () => {
+  const formRef = useRef(null);
   const [motorcicles, setMotorcicles] = useState([]);
 
   const { motorcicles: stateMoto } = useSelector<Istate, IinicialState>(
@@ -30,42 +37,40 @@ export const NewGasoline = () => {
     setMotorcicles(stateMoto);
   }, [stateMoto]);
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-
-    const dataPost = {
-      motorcicleId,
-      date,
-      km,
-      price,
-      liters,
-    };
-
-    const schema = yup.object().shape({
-      motorcicleId: yup.number().required(),
-      date: yup.date().required(),
-      km: yup.number().required(),
-      price: yup.number().required(),
-      liters: yup.number().required(),
-    });
-
-    if (!(await schema.isValid(dataPost))) {
-      toast.warn('Por favor preencha os campos corretamente.');
-      return;
-    }
-
+  const handleSubmit: SubmitHandler<Iformdata> = async (
+    dataForm,
+    { reset }
+  ) => {
     try {
-      const { status } = await api.post('/gasoline', dataPost);
+      formRef.current.setErrors({});
+      const schema = yup.object().shape({
+        motorcicleId: yup.number().required(),
+        date: yup.date().required(),
+        km: yup.number().required(),
+        price: yup.number().required(),
+        liters: yup.number().required(),
+      });
+
+      await schema.validate(dataForm, {
+        abortEarly: false,
+      });
+      const { status } = await api.post('/gasoline', dataForm);
 
       if (status === 201) {
+        reset();
         toast.success('Cadastrado com sucesso.');
-        setMotorcicleId('');
-        setPrice('');
-        setKm('');
-        setDate('');
-        setLiters('');
       }
     } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        const validationErrors = {};
+
+        error.inner.forEach((error) => {
+          validationErrors[error.path] = error.message;
+        });
+
+        formRef.current.setErrors(validationErrors);
+      }
+
       if (error.response) {
         const { message } = error.response.data;
 
@@ -89,16 +94,12 @@ export const NewGasoline = () => {
           <h1 className="title">Cadastro de gasolina</h1>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <Form ref={formRef} onSubmit={handleSubmit}>
           <div className="content">
-            <SelectForm
-              onChange={(e) => {
-                setMotorcicleId(e.target.value);
-              }}
-              value={motorcicleId}
-              autoFocus
-            >
-              <option>Selecione</option>
+            <SelectForm name="motorcicleId" autoFocus>
+              <option value="" disabled selected>
+                Selecione
+              </option>
               {motorcicles.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.board}
@@ -106,49 +107,24 @@ export const NewGasoline = () => {
               ))}
             </SelectForm>
 
-            <InputForm
-              type="date"
-              placeholder="Data"
-              value={date}
-              onChange={(e) => {
-                setDate(e.target.value);
-              }}
-              required
-            />
+            <InputForm name="date" type="date" placeholder="Data" required />
 
-            <InputForm
-              type="number"
-              placeholder="Km"
-              value={km}
-              onChange={(e) => {
-                setKm(e.target.value);
-              }}
-              required
-            />
+            <InputForm name="km" type="number" placeholder="Km" required />
           </div>
 
           <div className="content">
             <InputForm
+              name="price"
               type="number"
               placeholder="Preço por litro"
-              value={price}
-              onChange={(e) => {
-                setPrice(e.target.value);
-              }}
               required
             />
 
-            <InputForm
-              placeholder="Litros"
-              value={liters}
-              onChange={(e) => {
-                setLiters(e.target.value);
-              }}
-            />
+            <InputForm name="liters" placeholder="Litros" />
           </div>
 
           <Button type="submit">Cadastrar</Button>
-        </form>
+        </Form>
       </Section>
     </Container>
   );

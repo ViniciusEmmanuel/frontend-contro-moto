@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const TextArea = styled.textarea`
+export const TextAreaForm = styled.textarea`
   width: 100%;
   min-height: 140px;
   color: #333;

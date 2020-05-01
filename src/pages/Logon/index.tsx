@@ -1,12 +1,15 @@
-import React, { FormEvent, useState, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+
+import { SubmitHandler } from '@unform/core';
+import { Form } from '@unform/web';
 
 import * as yup from 'yup';
 import { useHistory } from 'react-router-dom';
 
 import { FiLoader } from 'react-icons/fi';
 
-import { InputForm } from '../../components/InputForm/styles';
+import { Input as InputForm } from '../../components/InputForm';
 import { Button } from '../../components/Button/styles';
 
 import { MainLogon, SectionForm } from './styles';
@@ -17,11 +20,14 @@ import {
   loadingToLogon,
 } from '../../store/redux/logon/actions';
 
+interface Iformdata {
+  userId: string;
+  password: string;
+}
+
 export const Logon = () => {
   const history = useHistory();
-
-  const [userId, setUser] = useState('');
-  const [password, setPassword] = useState('');
+  const formRef = useRef(null);
 
   const dispatch = useDispatch();
   const { auth, token, loading } = useSelector<Istate, IinicialState>(
@@ -34,45 +40,59 @@ export const Logon = () => {
     }
   }, [history, auth, token]);
 
-  const handleLogin = async (event: FormEvent) => {
-    event.preventDefault();
+  const handleLogin: SubmitHandler<Iformdata> = async (dataForm, { reset }) => {
+    try {
+      formRef.current.setErrors({});
 
-    const dataPost = { userId, password };
+      const schema = yup.object().shape({
+        userId: yup.number().required(),
+        password: yup.string().required(),
+      });
 
-    const schema = yup.object().shape({
-      userId: yup.number().required(),
-      password: yup.string().required(),
-    });
+      await schema.validate(dataForm, {
+        abortEarly: false,
+      });
 
-    if (!(await schema.isValid(dataPost))) {
-      return;
+      reset();
+      dispatch(loadingToLogon(true));
+      dispatch(requestToLogin(dataForm));
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        const validationErrors = {};
+
+        error.inner.forEach((error) => {
+          validationErrors[error.path] = error.message;
+        });
+
+        formRef.current.setErrors(validationErrors);
+      }
     }
-    dispatch(loadingToLogon(true));
-    dispatch(requestToLogin(dataPost));
   };
 
   return (
     <MainLogon>
       <SectionForm>
-        <form className="form-logon" onSubmit={handleLogin}>
+        <Form ref={formRef} className="form-logon" onSubmit={handleLogin}>
           <h1>Faça seu logon</h1>
 
           <InputForm
+            name="userId"
             type="number"
             placeholder="Usuário"
-            onChange={(e) => setUser(e.target.value)}
+            required
           />
 
           <InputForm
+            name="password"
             type="password"
             placeholder="Password"
-            onChange={(e) => setPassword(e.target.value)}
+            required
           />
 
           <Button type="submit" disabled={loading}>
             {loading ? <FiLoader size={32} color="#fff" /> : 'Entrar'}
           </Button>
-        </form>
+        </Form>
       </SectionForm>
     </MainLogon>
   );

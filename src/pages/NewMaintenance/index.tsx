@@ -1,30 +1,36 @@
-import React, { useState, FormEvent, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { SubmitHandler } from '@unform/core';
+import { Form } from '@unform/web';
+
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { FiArrowLeft } from 'react-icons/fi';
 import api from '../../services/api';
 
-import { InputForm } from '../../components/InputForm/styles';
-import { SelectForm } from '../../components/SelectForm/styles';
-import { TextArea } from '../../components/TextArea/styles';
+import { Input as InputForm } from '../../components/InputForm';
+import { Select as SelectForm } from '../../components/SelectForm';
+import { TextArea } from '../../components/TextArea';
 import { Button } from '../../components/Button/styles';
 import { StyleLink } from '../../components/Link/styles';
 
 import { Container, Section } from './styles';
 import { Istate, IinicialState } from '../../interfaces/redux/home';
 
-export const NewMaintenance = () => {
-  const [motorcicleId, setMotorcicleId] = useState('');
-  const [partId, setPartId] = useState('');
-  const [date, setDate] = useState('');
-  const [km, setKm] = useState('');
-  const [price, setPrice] = useState('');
-  const [mechanic, setMechanic] = useState('');
-  const [description, setDescription] = useState('');
+interface Iformdata {
+  motorcicleId: number;
+  partId: number;
+  date: string;
+  km: number;
+  price: number;
+  mechanic: string;
+  description: string;
+}
 
+export const NewMaintenance = () => {
   const [motorcicles, setMotorcicles] = useState([]);
   const [parts, setParts] = useState([]);
+  const formRef = useRef(null);
 
   const stateHome = useSelector<Istate, IinicialState>((state) => state.home);
 
@@ -33,48 +39,42 @@ export const NewMaintenance = () => {
     setParts(stateHome.parts);
   }, [stateHome]);
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-
-    const dataPost = {
-      motorcicleId,
-      partId,
-      date,
-      km,
-      price,
-      mechanic,
-      description,
-    };
-
-    const schema = yup.object().shape({
-      motorcicleId: yup.number().required(),
-      partId: yup.number().required(),
-      date: yup.date().required(),
-      km: yup.number().required(),
-      price: yup.number().required(),
-      mechanic: yup.string().required(),
-      description: yup.string(),
-    });
-
-    if (!(await schema.isValid(dataPost))) {
-      toast.warn('Por favor preencha os campos corretamente.');
-      return;
-    }
-
+  const handleSubmit: SubmitHandler<Iformdata> = async (
+    dataForm,
+    { reset }
+  ) => {
     try {
-      const { status } = await api.post('/maintenance', dataPost);
+      formRef.current.setErrors({});
+      const schema = yup.object().shape({
+        motorcicleId: yup.number().required(),
+        partId: yup.number().required(),
+        date: yup.date().required(),
+        km: yup.number().required(),
+        price: yup.number().required(),
+        mechanic: yup.string().required(),
+        description: yup.string(),
+      });
+
+      await schema.validate(dataForm, {
+        abortEarly: false,
+      });
+      const { status } = await api.post('/maintenance', dataForm);
 
       if (status === 201) {
+        reset();
         toast.success('Cadastrado com sucesso.');
-        setMotorcicleId('');
-        setPartId('');
-        setPrice('');
-        setKm('');
-        setDate('');
-        setMechanic('');
-        setDescription('');
       }
     } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        const validationErrors = {};
+
+        error.inner.forEach((error) => {
+          validationErrors[error.path] = error.message;
+        });
+
+        formRef.current.setErrors(validationErrors);
+      }
+
       if (error.response) {
         const { message } = error.response.data;
 
@@ -98,16 +98,12 @@ export const NewMaintenance = () => {
           <h1 className="title">Cadastro de Manutenção</h1>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <Form ref={formRef} onSubmit={handleSubmit}>
           <div className="content">
-            <SelectForm
-              onChange={(e) => {
-                setMotorcicleId(e.target.value);
-              }}
-              value={motorcicleId}
-              autoFocus
-            >
-              <option>Selecione</option>
+            <SelectForm name="motorcicleId" autoFocus>
+              <option value="" disabled selected>
+                Selecione
+              </option>
               {motorcicles.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.board}
@@ -115,13 +111,10 @@ export const NewMaintenance = () => {
               ))}
             </SelectForm>
 
-            <SelectForm
-              onChange={(e) => {
-                setPartId(e.target.value);
-              }}
-              value={partId}
-            >
-              <option>Selecione</option>
+            <SelectForm name="partId">
+              <option value="" disabled selected>
+                Selecione
+              </option>
               {parts.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name} - {item.description}
@@ -129,58 +122,30 @@ export const NewMaintenance = () => {
               ))}
             </SelectForm>
 
-            <InputForm
-              type="date"
-              placeholder="Data"
-              value={date}
-              onChange={(e) => {
-                setDate(e.target.value);
-              }}
-              required
-            />
+            <InputForm name="date" type="date" placeholder="Data" required />
 
-            <InputForm
-              type="number"
-              placeholder="Km"
-              value={km}
-              onChange={(e) => {
-                setKm(e.target.value);
-              }}
-              required
-            />
+            <InputForm name="km" type="number" placeholder="Km" required />
           </div>
 
           <div className="content">
             <InputForm
+              name="price"
               type="number"
               placeholder="Valor"
-              value={price}
-              onChange={(e) => {
-                setPrice(e.target.value);
-              }}
               required
             />
             <InputForm
+              name="mechanic"
               type="text"
               placeholder="Mecanico"
-              value={mechanic}
-              onChange={(e) => {
-                setMechanic(e.target.value);
-              }}
               required
             />
 
-            <TextArea
-              placeholder="Descrição"
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-              }}
-            />
+            <TextArea name="description" placeholder="Descrição" />
           </div>
 
           <Button type="submit">Cadastrar</Button>
-        </form>
+        </Form>
       </Section>
     </Container>
   );
