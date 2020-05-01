@@ -16,6 +16,7 @@ export const logon = (state = InicialState, action: IAction<IinicialState>) => {
       return { ...action.payload };
 
     case CONSTANTE.REQUEST_LOGOUT:
+      localStorage.clear();
       return InicialState;
 
     case CONSTANTE.LOADING_TO_REQUEST:

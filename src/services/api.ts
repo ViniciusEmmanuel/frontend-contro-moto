@@ -1,14 +1,21 @@
 import axios, { AxiosInstance } from 'axios';
 
 class Api {
-  private api = axios;
+  private api: AxiosInstance;
 
   private url: string;
 
-  private token: string;
-
   constructor() {
     this.create();
+  }
+
+  private create(): void {
+    this.getUrl();
+
+    this.api = axios.create({
+      baseURL: this.url,
+      responseType: 'json',
+    });
   }
 
   private getUrl(): void {
@@ -20,26 +27,15 @@ class Api {
     this.url = 'http://localhost:8000/api';
   }
 
-  private getToken(): string {
-    this.token = localStorage.getItem('@rwr/token');
+  public request(): AxiosInstance {
+    const token = localStorage.getItem('@rwr/token');
 
-    if (this.token) {
-      return `Bearer ${JSON.parse(this.token)}`;
-    }
+    this.api.defaults.headers.common['Authorization'] = `Bearer ${JSON.parse(
+      token
+    )}`;
 
-    return '';
-  }
-
-  public create(): AxiosInstance {
-    this.getUrl();
-
-    return this.api.create({
-      baseURL: this.url,
-      headers: {
-        Authorization: this.getToken(),
-      },
-    });
+    return this.api;
   }
 }
 
-export default new Api().create();
+export default new Api().request();
