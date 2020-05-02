@@ -3,6 +3,9 @@ import { toast } from 'react-toastify';
 import api from '../../../services/api';
 import { responseToLogon } from './actions';
 import { responseToMotorcicleParts } from '../Home/actions';
+import { responseToListMaintenance } from '../ListMaintenance/actions';
+import { responseToListGasoline } from '../ListGasoline/actions';
+
 import { CONSTANTE } from './_CONSTANTS';
 
 import { Iresposnse } from '../../../interfaces/api/IResponse';
@@ -69,6 +72,27 @@ function* requestToLogout() {
       name: '',
       token: '',
       user: '',
+    })
+  );
+
+  yield put(
+    responseToListMaintenance({
+      startDate: '',
+      finishDate: '',
+      maintenances: [],
+      motorcicleId: '',
+      partId: '',
+      loading: false,
+    })
+  );
+
+  yield put(
+    responseToListGasoline({
+      startDate: '',
+      finishDate: '',
+      gasolines: [],
+      motorcicleId: '',
+      loading: false,
     })
   );
 }
