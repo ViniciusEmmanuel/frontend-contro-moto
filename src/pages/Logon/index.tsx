@@ -53,7 +53,6 @@ export const Logon = () => {
         abortEarly: false,
       });
 
-      reset();
       dispatch(loadingToLogon(true));
       dispatch(requestToLogin(dataForm));
     } catch (error) {

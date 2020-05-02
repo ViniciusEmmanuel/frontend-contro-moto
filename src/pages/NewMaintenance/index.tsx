@@ -124,16 +124,11 @@ export const NewMaintenance = () => {
 
             <InputForm name="date" type="date" placeholder="Data" required />
 
-            <InputForm name="km" type="number" placeholder="Km" required />
+            <InputForm name="km" type="text" placeholder="Km" required />
           </div>
 
           <div className="content">
-            <InputForm
-              name="price"
-              type="number"
-              placeholder="Valor"
-              required
-            />
+            <InputForm name="price" type="text" placeholder="Valor" required />
             <InputForm
               name="mechanic"
               type="text"
