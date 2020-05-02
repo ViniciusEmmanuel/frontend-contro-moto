@@ -114,7 +114,7 @@ export const ListMaintenance = () => {
     [requestApi, startDate, finishDate, motorcicleId, partId]
   );
 
-  const modal = (props) => {
+  const handleModal = (props: Imaintenance) => {
     dispatch(openModal({ component: ModalMaintenance, props }));
   };
 
@@ -222,7 +222,7 @@ export const ListMaintenance = () => {
                   <td>{Number(item.price).toFixed(2)}</td>
                   <td>{item.mechanic}</td>
                   <td>
-                    <Button type="button" onClick={() => modal(item)}>
+                    <Button type="button" onClick={() => handleModal(item)}>
                       <FiEdit size={18} color="#018fe1" />
                     </Button>
                   </td>
