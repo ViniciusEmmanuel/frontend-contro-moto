@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiTrash2, FiEdit, FiArrowLeft, FiLoader } from 'react-icons/fi';
 
@@ -8,10 +8,15 @@ import { Form } from '@unform/web';
 
 import api from '../../services/api';
 
+import { requestToListMaintenance } from '../../store/redux/ListMaintenance/actions';
 import { openModal } from '../../store/redux/Modal/actions';
 
 import { Iresposnse } from '../../interfaces/api/IResponse';
 import { Istate, IinicialState } from '../../interfaces/redux/home';
+import {
+  Istate as IstateMaintenance,
+  IinicialState as IinicialMaintenance,
+} from '../../interfaces/redux/listMaintenance';
 import { Imaintenance } from '../../interfaces/models/IMaintenance';
 
 import { toast } from 'react-toastify';
@@ -38,8 +43,19 @@ export const ListMaintenance = () => {
     IinicialState
   >((state) => state.home);
 
-  const [loading, setLoading] = useState(false);
-  const [listMaintenance, setListMaintenance] = useState<Imaintenance[]>([]);
+  const stateMaintenance = useSelector<IstateMaintenance, IinicialMaintenance>(
+    (state) => state.listMaintenance
+  );
+
+  const listMaintenance = useMemo<Imaintenance[]>(
+    () => stateMaintenance.maintenances,
+    [stateMaintenance]
+  );
+
+  const loading = useMemo<boolean>(() => stateMaintenance.loading, [
+    stateMaintenance,
+  ]);
+
   const motorcicles = useMemo(() => stateMotorcicles, [stateMotorcicles]);
   const parts = useMemo(() => stateParts, [stateParts]);
 
@@ -50,33 +66,15 @@ export const ListMaintenance = () => {
   const [motorcicleId, setMotorcicleId] = useState('');
   const [partId, setPartId] = useState('');
 
-  const requestApi = useCallback(async (params) => {
-    const {
-      status,
-      data: response,
-    }: Iresposnse<Imaintenance[]> = await api.get('/maintenance', {
-      params,
-    });
-
-    if (status === 200) {
-      setListMaintenance(response.data);
-    }
-  }, []);
+  useEffect(() => {
+    setStartDate(stateMaintenance.startDate);
+    setFinishDate(stateMaintenance.finishDate);
+    setMotorcicleId(stateMaintenance.motorcicleId);
+    setPartId(stateMaintenance.partId);
+  }, [stateMaintenance]);
 
   const handleSubmit: SubmitHandler<Iformdata> = async (data) => {
-    setLoading(true);
-    const params = {
-      date_before: data.startDate,
-      date_after: data.finishDate,
-      motorcicle_id: Number(data.motorcicleId),
-      part_id: Number(data.partId),
-    };
-
-    !motorcicleId && delete params.motorcicle_id;
-    !partId && delete params.part_id;
-
-    await requestApi(params);
-    setLoading(false);
+    dispatch(requestToListMaintenance(data));
   };
 
   const deleteData = useCallback(
@@ -88,17 +86,14 @@ export const ListMaintenance = () => {
           );
 
           if (status === 204) {
-            const params = {
-              date_before: startDate,
-              date_after: finishDate,
-              motorcicle_id: Number(motorcicleId),
-              part_id: Number(partId),
-            };
-
-            !motorcicleId && delete params.motorcicle_id;
-            !partId && delete params.part_id;
-
-            requestApi(params);
+            dispatch(
+              requestToListMaintenance({
+                startDate,
+                finishDate,
+                motorcicleId,
+                partId,
+              })
+            );
           }
         } catch (error) {
           if (error.response) {
@@ -111,7 +106,7 @@ export const ListMaintenance = () => {
         }
       }
     },
-    [requestApi, startDate, finishDate, motorcicleId, partId]
+    [dispatch, startDate, finishDate, motorcicleId, partId]
   );
 
   const handleModal = (props: Imaintenance) => {
@@ -159,6 +154,7 @@ export const ListMaintenance = () => {
             <span>Motos</span>
             <SelectForm
               name="motorcicleId"
+              value={motorcicleId}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setMotorcicleId(e.target.value);
               }}
@@ -176,6 +172,7 @@ export const ListMaintenance = () => {
             <span>Peças</span>
             <SelectForm
               name="partId"
+              value={partId}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setPartId(e.target.value);
               }}

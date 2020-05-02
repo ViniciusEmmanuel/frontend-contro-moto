@@ -8,6 +8,12 @@ import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { FiLoader } from 'react-icons/fi';
 
+import { requestToListMaintenance } from '../../../../store/redux/ListMaintenance/actions';
+import {
+  Istate as IstateMaintenance,
+  IinicialState as IinicialMaintenance,
+} from '../../../../interfaces/redux/listMaintenance';
+
 import { closeModal } from '../../../../store/redux/Modal/actions';
 import { Imaintenance } from '../../../../interfaces/models/IMaintenance';
 import { Istate, IinicialState } from '../../../../interfaces/redux/home';
@@ -44,6 +50,11 @@ export const ModalMaintenance = React.forwardRef(
       IinicialState
     >((state) => state.home);
 
+    const { startDate, finishDate, motorcicleId, partId } = useSelector<
+      IstateMaintenance,
+      IinicialMaintenance
+    >((state) => state.listMaintenance);
+
     const motorcicles = useMemo(() => stateMotorcicles, [stateMotorcicles]);
     const parts = useMemo(() => stateParts, [stateParts]);
 
@@ -74,6 +85,15 @@ export const ModalMaintenance = React.forwardRef(
 
         if (status === 204) {
           toast.success('Alterado com sucesso.');
+
+          dispatch(
+            requestToListMaintenance({
+              startDate,
+              finishDate,
+              motorcicleId,
+              partId,
+            })
+          );
           dispatch(closeModal());
         }
       } catch (error) {
