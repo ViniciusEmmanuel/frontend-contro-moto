@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { FiArrowRight } from 'react-icons/fi';
 
 import { StyleLink } from '../../components/Link/styles';
 import { Container, List, MainHome } from './styles';
 
 import { requestToMotorcicleParts } from '../../store/redux/Home/actions';
+import { Istate, IinicialState } from '../../interfaces/redux/home';
 
 export const Home = () => {
   const optionsMenu = [
@@ -14,14 +15,20 @@ export const Home = () => {
     { id: '3', name: 'Castrar peça', link: '/cadastrar-pecas' },
     { id: '4', name: 'Cadastrar gasolina', link: '/cadastrar-gasolina' },
     { id: '5', name: 'Listar gasolina', link: '/listar-gasolina' },
-    { id: '6', name: 'Castrar moto', link: '/cadastra-moto' },
+    { id: '6', name: 'Castrar moto', link: '/cadastrar-moto' },
   ];
 
   const dispacth = useDispatch();
 
+  const { motorcicles, parts } = useSelector<Istate, IinicialState>(
+    (state) => state.home
+  );
+
   useEffect(() => {
-    dispacth(requestToMotorcicleParts());
-  }, [dispacth]);
+    if (motorcicles.length === 0 || parts.length === 0) {
+      dispacth(requestToMotorcicleParts());
+    }
+  }, [dispacth, motorcicles, parts]);
 
   return (
     <Container>

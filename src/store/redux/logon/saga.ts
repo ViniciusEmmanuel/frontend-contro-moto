@@ -2,6 +2,7 @@ import { call, put, all, takeLatest } from 'redux-saga/effects';
 import { toast } from 'react-toastify';
 import api from '../../../services/api';
 import { responseToLogon } from './actions';
+import { responseToMotorcicleParts } from '../Home/actions';
 import { CONSTANTE } from './_CONSTANTS';
 
 import { Iresposnse } from '../../../interfaces/api/IResponse';
@@ -54,4 +55,25 @@ function* requestToLogon({ payload }: IAction<Ilogon>) {
   }
 }
 
-export default all([takeLatest(CONSTANTE.REQUEST_LOGON, requestToLogon)]);
+function* requestToLogout() {
+  localStorage.clear();
+
+  yield put(
+    responseToMotorcicleParts({ loading: false, motorcicles: [], parts: [] })
+  );
+
+  yield put(
+    responseToLogon({
+      auth: false,
+      loading: false,
+      name: '',
+      token: '',
+      user: '',
+    })
+  );
+}
+
+export default all([
+  takeLatest(CONSTANTE.REQUEST_LOGON, requestToLogon),
+  takeLatest(CONSTANTE.REQUEST_LOGOUT, requestToLogout),
+]);
