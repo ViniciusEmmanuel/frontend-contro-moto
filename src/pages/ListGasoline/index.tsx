@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useCallback, useState, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { FiTrash2, FiEdit, FiArrowLeft, FiLoader } from 'react-icons/fi';
 
 import api from '../../services/api';
@@ -19,6 +19,9 @@ import { SelectForm } from '../../components/SelectForm/styles';
 import { Container, Section, Button } from './styles';
 import { StyleLink } from '../../components/Link/styles';
 
+import { openModal } from '../../store/redux/Modal/actions';
+import { ModalGasoline } from '../../components/Modal/modais/Gasoline';
+
 interface Iformdata {
   startDate: string;
   finishDate: string;
@@ -26,6 +29,8 @@ interface Iformdata {
 }
 
 export const ListGasoline = () => {
+  const dispatch = useDispatch();
+
   const { motorcicles: stateMotorcicles } = useSelector<Istate, IinicialState>(
     (state) => state.home
   );
@@ -100,6 +105,10 @@ export const ListGasoline = () => {
     },
     [requestApi, startDate, finishDate, motorcicleId]
   );
+
+  const handleModal = (gasoline: Igasoline) => {
+    dispatch(openModal({ component: ModalGasoline, props: gasoline }));
+  };
 
   return (
     <Container>
@@ -189,7 +198,7 @@ export const ListGasoline = () => {
                   <td>{Number(item.price).toFixed(2)}</td>
                   <td>{Number(item.total).toFixed(2)}</td>
                   <td>
-                    <Button type="button">
+                    <Button type="button" onClick={() => handleModal(item)}>
                       <FiEdit size={18} color="#018fe1" />
                     </Button>
                   </td>
