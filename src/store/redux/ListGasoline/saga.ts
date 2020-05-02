@@ -1,79 +1,53 @@
-import { call, put, all, takeLatest } from 'redux-saga/effects';
+import { all, call, put, takeLatest } from 'redux-saga/effects';
+
+import { CONSTANTE } from './_CONSTANTS';
 import { toast } from 'react-toastify';
 import api from '../../../services/api';
-import { responseToLogon } from './actions';
-import { responseToMotorcicleParts } from '../Home/actions';
-import { CONSTANTE } from './_CONSTANTS';
-
+import { responseToListGasoline, loadingToListGasoline } from './actions';
 import { Iresposnse } from '../../../interfaces/api/IResponse';
-import { Iuser } from '../../../interfaces/models/IUser';
-
+import { Igasoline } from '../../../interfaces/models/IGasoline';
 import { IAction } from '../../../interfaces/redux/redux';
-import { Ilogon } from '../../../interfaces/redux/logon';
+import { IrequestListGasoline } from '../../../interfaces/redux/listGasoline';
 
-function* requestToLogon({ payload }: IAction<Ilogon>) {
+function* requestListGasoline({ payload }: IAction<IrequestListGasoline>) {
+  yield put(loadingToListGasoline(true));
   try {
-    const { status, data: response }: Iresposnse<Iuser> = yield call(
-      api.post,
-      `/session`,
-      { ...payload }
+    const params = {
+      date_before: payload.startDate,
+      date_after: payload.finishDate,
+      motorcicle_id: payload.motorcicleId,
+    };
+
+    !payload.motorcicleId && delete params.motorcicle_id;
+
+    const { status, data: response }: Iresposnse<Igasoline[]> = yield call(
+      api.get,
+      `/gasoline`,
+      {
+        params,
+      }
     );
-    if (status === 201) {
-      localStorage.setItem('@rwr/token', JSON.stringify(response.data.token));
-
-      api.defaults.headers['Authorization'] = `Bearer ${response.data.token}`;
-
-      return yield put(
-        responseToLogon({
-          auth: true,
-          name: response.data.name,
-          user: response.data.user,
-          token: response.data.token,
+    if (status === 200) {
+      yield put(
+        responseToListGasoline({
+          ...payload,
+          gasolines: response.data,
           loading: false,
         })
       );
     }
-    toast.error('Email ou senhas não conferem.');
   } catch (error) {
     if (error.response) {
       const { message } = error.response.data;
-
       if (message) {
         toast.error(message);
       }
     }
-
-    return yield put(
-      responseToLogon({
-        auth: false,
-        name: '',
-        user: '',
-        token: '',
-        loading: false,
-      })
-    );
   }
-}
 
-function* requestToLogout() {
-  localStorage.clear();
-
-  yield put(
-    responseToMotorcicleParts({ loading: false, motorcicles: [], parts: [] })
-  );
-
-  yield put(
-    responseToLogon({
-      auth: false,
-      loading: false,
-      name: '',
-      token: '',
-      user: '',
-    })
-  );
+  return yield put(loadingToListGasoline(false));
 }
 
 export default all([
-  takeLatest(CONSTANTE.REQUEST_LOGON, requestToLogon),
-  takeLatest(CONSTANTE.REQUEST_LOGOUT, requestToLogout),
+  takeLatest(CONSTANTE.REQUEST_LIST_GASOLINE, requestListGasoline),
 ]);

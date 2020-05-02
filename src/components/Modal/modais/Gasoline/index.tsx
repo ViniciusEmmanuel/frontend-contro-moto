@@ -8,6 +8,12 @@ import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { FiLoader } from 'react-icons/fi';
 
+import { requestToListGasoline } from '../../../../store/redux/ListGasoline/actions';
+import {
+  Istate as IstateGasoline,
+  IinicialState as IinicialGasoline,
+} from '../../../../interfaces/redux/listGasoline';
+
 import { closeModal } from '../../../../store/redux/Modal/actions';
 import { Igasoline } from '../../../../interfaces/models/IGasoline';
 import { Istate, IinicialState } from '../../../../interfaces/redux/home';
@@ -32,6 +38,11 @@ interface Iformdata {
 export const ModalGasoline = React.forwardRef(
   ({ props }: Iprops, ref: React.Ref<HTMLDListElement>) => {
     const dispatch = useDispatch();
+
+    const { startDate, finishDate, motorcicleId } = useSelector<
+      IstateGasoline,
+      IinicialGasoline
+    >((state) => state.listGasoline);
 
     const [loading, setLoading] = useState(false);
 
@@ -62,6 +73,9 @@ export const ModalGasoline = React.forwardRef(
 
         if (status === 204) {
           toast.success('Alterado com sucesso.');
+          dispatch(
+            requestToListGasoline({ startDate, finishDate, motorcicleId })
+          );
           dispatch(closeModal());
         }
       } catch (error) {

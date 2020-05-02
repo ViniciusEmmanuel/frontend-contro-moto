@@ -1,30 +1,26 @@
 import { CONSTANTE } from './_CONSTANTS';
-import { Ilogon, IinicialState } from '../../../interfaces/redux/logon';
+import {
+  IinicialState,
+  IrequestListGasoline,
+} from '../../../interfaces/redux/listGasoline';
 
-export function requestToLogin(user: Ilogon) {
+export function requestToListGasoline(payload: IrequestListGasoline) {
   return {
-    type: CONSTANTE.REQUEST_LOGON,
-    payload: user,
-  };
-}
-
-export function responseToLogon(payload: IinicialState) {
-  return {
-    type: CONSTANTE.RESPONSE_LOGON,
+    type: CONSTANTE.REQUEST_LIST_GASOLINE,
     payload,
   };
 }
 
-export function requestToLogout() {
+export function responseToListGasoline(payload: IinicialState) {
   return {
-    type: CONSTANTE.REQUEST_LOGOUT,
-    payload: {},
+    type: CONSTANTE.RESPONSE_LIST_GASOLINE,
+    payload,
   };
 }
 
-export function loadingToLogon(loading: boolean) {
+export function loadingToListGasoline(loading: boolean) {
   return {
-    type: CONSTANTE.LOADING_TO_REQUEST,
+    type: CONSTANTE.LOADING_LIST_GASOLINE,
     payload: { loading },
   };
 }
