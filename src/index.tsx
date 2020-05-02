@@ -11,6 +11,8 @@ import GlobalStyles from './assets/styles/gloabalstyles';
 import { History } from './services/history';
 import Routes from './routes';
 
+import { Modal } from './components/Modal/index';
+
 ReactDOM.render(
   <Provider store={store}>
     <PersistGate loading={null} persistor={persistedStore}>
@@ -18,6 +20,7 @@ ReactDOM.render(
         <Routes />
         <GlobalStyles />
         <ToastContainer autoClose={3000} position="top-left" />
+        <Modal />
       </Router>
     </PersistGate>
   </Provider>,
