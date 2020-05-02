@@ -1,12 +1,14 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React, { useCallback, useState, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { FiTrash2, FiEdit, FiArrowLeft, FiLoader } from 'react-icons/fi';
 
 import { SubmitHandler } from '@unform/core';
 import { Form } from '@unform/web';
 
 import api from '../../services/api';
+
+import { openModal } from '../../store/redux/Modal/actions';
 
 import { Iresposnse } from '../../interfaces/api/IResponse';
 import { Istate, IinicialState } from '../../interfaces/redux/home';
@@ -19,6 +21,8 @@ import { Select as SelectForm } from '../../components/SelectForm';
 import { Container, Section, Button } from './styles';
 import { StyleLink } from '../../components/Link/styles';
 
+import { ModalMaintenance } from '../../components/Modal/modais/Maintenance';
+
 interface Iformdata {
   startDate: string;
   finishDate: string;
@@ -27,6 +31,8 @@ interface Iformdata {
 }
 
 export const ListMaintenance = () => {
+  const dispatch = useDispatch();
+
   const { motorcicles: stateMotorcicles, parts: stateParts } = useSelector<
     Istate,
     IinicialState
@@ -107,6 +113,10 @@ export const ListMaintenance = () => {
     },
     [requestApi, startDate, finishDate, motorcicleId, partId]
   );
+
+  const modal = (props) => {
+    dispatch(openModal({ component: ModalMaintenance, props }));
+  };
 
   return (
     <Container>
@@ -212,7 +222,7 @@ export const ListMaintenance = () => {
                   <td>{Number(item.price).toFixed(2)}</td>
                   <td>{item.mechanic}</td>
                   <td>
-                    <Button type="button">
+                    <Button type="button" onClick={() => modal(item)}>
                       <FiEdit size={18} color="#018fe1" />
                     </Button>
                   </td>
