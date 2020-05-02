@@ -15,7 +15,7 @@ export const Container = styled.main`
 `;
 
 export const Section = styled.section`
-  width: 100%;
+  width: 95%;
   flex: 1;
   padding: 16px;
 
@@ -24,6 +24,13 @@ export const Section = styled.section`
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
+    position: relative;
+
+    .return {
+      position: absolute;
+      top: 32px;
+      left: -48px;
+    }
 
     button[type='submit'],
     label {

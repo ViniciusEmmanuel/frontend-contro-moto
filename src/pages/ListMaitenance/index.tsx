@@ -1,7 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useEffect, useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { FiTrash2, FiEdit } from 'react-icons/fi';
+import { FiTrash2, FiEdit, FiArrowLeft, FiLoader } from 'react-icons/fi';
+
+import { SubmitHandler } from '@unform/core';
+import { Form } from '@unform/web';
 
 import api from '../../services/api';
 
@@ -11,47 +14,85 @@ import { Imaintenance } from '../../interfaces/models/IMaintenance';
 
 import { toast } from 'react-toastify';
 import { Button as ButtonForm } from '../../components/Button/styles';
-import { InputForm } from '../../components/InputForm/styles';
-import { SelectForm } from '../../components/SelectForm/styles';
+import { Input as InputForm } from '../../components/InputForm';
+import { Select as SelectForm } from '../../components/SelectForm';
 import { Container, Section, Button } from './styles';
+import { StyleLink } from '../../components/Link/styles';
+
+interface Iformdata {
+  startDate: string;
+  finishDate: string;
+  motorcicleId: string;
+  partId: string;
+}
 
 export const ListMaintenance = () => {
-  const { motorcicles: stateMotorcicles } = useSelector<Istate, IinicialState>(
-    (state) => state.home
-  );
+  const { motorcicles: stateMotorcicles, parts: stateParts } = useSelector<
+    Istate,
+    IinicialState
+  >((state) => state.home);
 
+  const [loading, setLoading] = useState(false);
   const [listMaintenance, setListMaintenance] = useState<Imaintenance[]>([]);
   const motorcicles = useMemo(() => stateMotorcicles, [stateMotorcicles]);
+  const parts = useMemo(() => stateParts, [stateParts]);
 
   const [startDate, setStartDate] = useState('');
-  const [finishDate, setFinishDate] = useState('');
+  const [finishDate, setFinishDate] = useState(
+    new Date().toISOString().split('T')[0]
+  );
   const [motorcicleId, setMotorcicleId] = useState('');
+  const [partId, setPartId] = useState('');
 
-  const requestApi = useCallback(async () => {
+  const requestApi = useCallback(async (params) => {
     const {
       status,
       data: response,
-    }: Iresposnse<Imaintenance[]> = await api.get('/maintenance');
+    }: Iresposnse<Imaintenance[]> = await api.get('/maintenance', {
+      params,
+    });
 
     if (status === 200) {
       setListMaintenance(response.data);
     }
   }, []);
 
-  useEffect(() => {
-    requestApi();
-  }, [requestApi]);
+  const handleSubmit: SubmitHandler<Iformdata> = async (data) => {
+    setLoading(true);
+    const params = {
+      date_before: data.startDate,
+      date_after: data.finishDate,
+      motorcicle_id: Number(data.motorcicleId),
+      part_id: Number(data.partId),
+    };
+
+    !motorcicleId && delete params.motorcicle_id;
+    !partId && delete params.part_id;
+
+    await requestApi(params);
+    setLoading(false);
+  };
 
   const deleteData = useCallback(
     async (id: number) => {
       if (id) {
         try {
           const { status }: Iresposnse<[]> = await api.delete(
-            `/gasoline/${id}`
+            `/maintenance/${id}`
           );
 
           if (status === 204) {
-            requestApi();
+            const params = {
+              date_before: startDate,
+              date_after: finishDate,
+              motorcicle_id: Number(motorcicleId),
+              part_id: Number(partId),
+            };
+
+            !motorcicleId && delete params.motorcicle_id;
+            !partId && delete params.part_id;
+
+            requestApi(params);
           }
         } catch (error) {
           if (error.response) {
@@ -64,20 +105,27 @@ export const ListMaintenance = () => {
         }
       }
     },
-    [requestApi]
+    [requestApi, startDate, finishDate, motorcicleId, partId]
   );
 
   return (
     <Container>
       <Section>
-        <form className="header">
+        <Form className="header" onSubmit={handleSubmit}>
+          <i title="Voltar" className="return">
+            <StyleLink to="/home">
+              <FiArrowLeft size={32} color="#018fe1" />
+            </StyleLink>
+          </i>
+
           <label>
             <span>Data inicial</span>
             <InputForm
+              name="startDate"
               type="date"
               placeholder="Data"
               value={startDate}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setStartDate(e.target.value);
               }}
               required
@@ -87,10 +135,11 @@ export const ListMaintenance = () => {
           <label>
             <span>Data final</span>
             <InputForm
+              name="finishDate"
               type="date"
               placeholder="Data"
               value={finishDate}
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setFinishDate(e.target.value);
               }}
               required
@@ -99,13 +148,12 @@ export const ListMaintenance = () => {
           <label>
             <span>Motos</span>
             <SelectForm
-              onChange={(e) => {
+              name="motorcicleId"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 setMotorcicleId(e.target.value);
               }}
-              value={motorcicleId}
-              autoFocus
             >
-              <option>Selecione</option>
+              <option value="">Selecione</option>
               {motorcicles.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.board}
@@ -114,8 +162,27 @@ export const ListMaintenance = () => {
             </SelectForm>
           </label>
 
-          <ButtonForm type="submit">Buscar</ButtonForm>
-        </form>
+          <label>
+            <span>Peças</span>
+            <SelectForm
+              name="partId"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setPartId(e.target.value);
+              }}
+            >
+              <option value="">Selecione</option>
+              {parts.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </SelectForm>
+          </label>
+
+          <ButtonForm type="submit" disabled={loading}>
+            {loading ? <FiLoader size={32} color="#fff" /> : 'Buscar'}
+          </ButtonForm>
+        </Form>
 
         <table>
           <thead>

@@ -1,9 +1,12 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useEffect, useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { FiTrash2, FiEdit } from 'react-icons/fi';
+import { FiTrash2, FiEdit, FiArrowLeft, FiLoader } from 'react-icons/fi';
 
 import api from '../../services/api';
+
+import { SubmitHandler } from '@unform/core';
+import { Form } from '@unform/web';
 
 import { Iresposnse } from '../../interfaces/api/IResponse';
 import { Istate, IinicialState } from '../../interfaces/redux/home';
@@ -14,22 +17,36 @@ import { Button as ButtonForm } from '../../components/Button/styles';
 import { InputForm } from '../../components/InputForm/styles';
 import { SelectForm } from '../../components/SelectForm/styles';
 import { Container, Section, Button } from './styles';
+import { StyleLink } from '../../components/Link/styles';
+
+interface Iformdata {
+  startDate: string;
+  finishDate: string;
+  motorcicleId: string;
+}
 
 export const ListGasoline = () => {
   const { motorcicles: stateMotorcicles } = useSelector<Istate, IinicialState>(
     (state) => state.home
   );
-
   const [listGasoline, setListGasoline] = useState<Igasoline[]>([]);
+
+  const [loading, setLoading] = useState(false);
+
   const motorcicles = useMemo(() => stateMotorcicles, [stateMotorcicles]);
 
   const [startDate, setStartDate] = useState('');
-  const [finishDate, setFinishDate] = useState('');
+  const [finishDate, setFinishDate] = useState(
+    new Date().toISOString().split('T')[0]
+  );
   const [motorcicleId, setMotorcicleId] = useState('');
 
-  const requestApi = useCallback(async () => {
+  const requestApi = useCallback(async (params) => {
     const { status, data: response }: Iresposnse<Igasoline[]> = await api.get(
-      '/gasoline'
+      '/gasoline',
+      {
+        params,
+      }
     );
 
     if (status === 200) {
@@ -37,9 +54,19 @@ export const ListGasoline = () => {
     }
   }, []);
 
-  useEffect(() => {
-    requestApi();
-  }, [requestApi]);
+  const handleSubmit: SubmitHandler<Iformdata> = async (data) => {
+    setLoading(true);
+    const params = {
+      date_before: data.startDate,
+      date_after: data.finishDate,
+      motorcicle_id: Number(data.motorcicleId),
+    };
+
+    !motorcicleId && delete params.motorcicle_id;
+
+    await requestApi(params);
+    setLoading(false);
+  };
 
   const deleteData = useCallback(
     async (id: number) => {
@@ -50,7 +77,15 @@ export const ListGasoline = () => {
           );
 
           if (status === 204) {
-            requestApi();
+            const params = {
+              date_before: startDate,
+              date_after: finishDate,
+              motorcicle_id: Number(motorcicleId),
+            };
+
+            !motorcicleId && delete params.motorcicle_id;
+
+            requestApi(params);
           }
         } catch (error) {
           if (error.response) {
@@ -63,13 +98,19 @@ export const ListGasoline = () => {
         }
       }
     },
-    [requestApi]
+    [requestApi, startDate, finishDate, motorcicleId]
   );
 
   return (
     <Container>
       <Section>
-        <form className="header">
+        <Form className="header" onSubmit={handleSubmit}>
+          <i title="Voltar" className="return">
+            <StyleLink to="/home">
+              <FiArrowLeft size={32} color="#018fe1" />
+            </StyleLink>
+          </i>
+
           <label>
             <span>Data inicial</span>
             <InputForm
@@ -113,8 +154,10 @@ export const ListGasoline = () => {
             </SelectForm>
           </label>
 
-          <ButtonForm type="submit">Buscar</ButtonForm>
-        </form>
+          <ButtonForm type="submit" disabled={loading}>
+            {loading ? <FiLoader size={32} color="#fff" /> : 'Buscar'}
+          </ButtonForm>
+        </Form>
 
         <table>
           <thead>
