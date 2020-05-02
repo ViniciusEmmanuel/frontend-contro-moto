@@ -1,11 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { SubmitHandler } from '@unform/core';
 import { Form } from '@unform/web';
 
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
-import { FiArrowLeft } from 'react-icons/fi';
+import { FiArrowLeft, FiLoader } from 'react-icons/fi';
 import api from '../../services/api';
 
 import { Input as InputForm } from '../../components/InputForm';
@@ -16,6 +16,12 @@ import { StyleLink } from '../../components/Link/styles';
 
 import { Container, Section } from './styles';
 import { Istate, IinicialState } from '../../interfaces/redux/home';
+
+import { requestToListMaintenance } from '../../store/redux/ListMaintenance/actions';
+import {
+  Istate as IstateMaintenance,
+  IinicialState as IinicialMaintenance,
+} from '../../interfaces/redux/listMaintenance';
 
 interface Iformdata {
   motorcicleId: number;
@@ -28,11 +34,19 @@ interface Iformdata {
 }
 
 export const NewMaintenance = () => {
+  const dispatch = useDispatch();
+
   const [motorcicles, setMotorcicles] = useState([]);
   const [parts, setParts] = useState([]);
+  const [loading, setLoading] = useState(false);
   const formRef = useRef(null);
 
   const stateHome = useSelector<Istate, IinicialState>((state) => state.home);
+
+  const { startDate, finishDate, motorcicleId, partId } = useSelector<
+    IstateMaintenance,
+    IinicialMaintenance
+  >((state) => state.listMaintenance);
 
   useEffect(() => {
     setMotorcicles(stateHome.motorcicles);
@@ -43,6 +57,7 @@ export const NewMaintenance = () => {
     dataForm,
     { reset }
   ) => {
+    setLoading(true);
     try {
       formRef.current.setErrors({});
       const schema = yup.object().shape({
@@ -63,6 +78,14 @@ export const NewMaintenance = () => {
       if (status === 201) {
         reset();
         toast.success('Cadastrado com sucesso.');
+        dispatch(
+          requestToListMaintenance({
+            startDate,
+            finishDate,
+            motorcicleId,
+            partId,
+          })
+        );
       }
     } catch (error) {
       if (error instanceof yup.ValidationError) {
@@ -83,6 +106,7 @@ export const NewMaintenance = () => {
         }
       }
     }
+    setLoading(false);
   };
 
   return (
@@ -100,8 +124,8 @@ export const NewMaintenance = () => {
 
         <Form ref={formRef} onSubmit={handleSubmit}>
           <div className="content">
-            <SelectForm name="motorcicleId" defaultValue="default" autoFocus>
-              <option value="default" disabled>
+            <SelectForm name="motorcicleId" defaultValue="" autoFocus>
+              <option value="" disabled>
                 Selecione
               </option>
               {motorcicles.map((item) => (
@@ -111,8 +135,8 @@ export const NewMaintenance = () => {
               ))}
             </SelectForm>
 
-            <SelectForm name="partId" defaultValue="default">
-              <option value="default" disabled>
+            <SelectForm name="partId" defaultValue="">
+              <option value="" disabled>
                 Selecione
               </option>
               {parts.map((item) => (
@@ -139,7 +163,9 @@ export const NewMaintenance = () => {
             <TextArea name="description" placeholder="Descrição" />
           </div>
 
-          <Button type="submit">Cadastrar</Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? <FiLoader size={32} color="#fff" /> : 'Cadastrar'}
+          </Button>
         </Form>
       </Section>
     </Container>

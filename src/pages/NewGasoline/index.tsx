@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 import { SubmitHandler } from '@unform/core';
 import { Form } from '@unform/web';
 
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
-import { FiArrowLeft } from 'react-icons/fi';
+import { FiArrowLeft, FiLoader } from 'react-icons/fi';
 import api from '../../services/api';
 
 import { Input as InputForm } from '../../components/InputForm';
@@ -17,6 +17,12 @@ import { StyleLink } from '../../components/Link/styles';
 import { Container, Section } from './styles';
 import { Istate, IinicialState } from '../../interfaces/redux/home';
 
+import { requestToListGasoline } from '../../store/redux/ListGasoline/actions';
+import {
+  Istate as IstateGasoline,
+  IinicialState as IinicialGasoline,
+} from '../../interfaces/redux/listGasoline';
+
 interface Iformdata {
   motorcicleId: number;
   date: string;
@@ -26,12 +32,19 @@ interface Iformdata {
 }
 
 export const NewGasoline = () => {
+  const dispatch = useDispatch();
   const formRef = useRef(null);
   const [motorcicles, setMotorcicles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const { motorcicles: stateMoto } = useSelector<Istate, IinicialState>(
     (state) => state.home
   );
+
+  const { startDate, finishDate, motorcicleId } = useSelector<
+    IstateGasoline,
+    IinicialGasoline
+  >((state) => state.listGasoline);
 
   useEffect(() => {
     setMotorcicles(stateMoto);
@@ -41,6 +54,7 @@ export const NewGasoline = () => {
     dataForm,
     { reset }
   ) => {
+    setLoading(true);
     try {
       formRef.current.setErrors({});
       const schema = yup.object().shape({
@@ -59,6 +73,9 @@ export const NewGasoline = () => {
       if (status === 201) {
         reset();
         toast.success('Cadastrado com sucesso.');
+        dispatch(
+          requestToListGasoline({ startDate, finishDate, motorcicleId })
+        );
       }
     } catch (error) {
       if (error instanceof yup.ValidationError) {
@@ -79,6 +96,7 @@ export const NewGasoline = () => {
         }
       }
     }
+    setLoading(false);
   };
 
   return (
@@ -96,8 +114,8 @@ export const NewGasoline = () => {
 
         <Form ref={formRef} onSubmit={handleSubmit}>
           <div className="content">
-            <SelectForm name="motorcicleId" defaultValue="default" autoFocus>
-              <option value="default" disabled>
+            <SelectForm name="motorcicleId" defaultValue="" autoFocus>
+              <option value="" disabled>
                 Selecione
               </option>
               {motorcicles.map((item) => (
@@ -123,7 +141,9 @@ export const NewGasoline = () => {
             <InputForm name="liters" placeholder="Litros" />
           </div>
 
-          <Button type="submit">Cadastrar</Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? <FiLoader size={32} color="#fff" /> : 'Cadastrar'}
+          </Button>
         </Form>
       </Section>
     </Container>

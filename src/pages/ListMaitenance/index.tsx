@@ -60,9 +60,7 @@ export const ListMaintenance = () => {
   const parts = useMemo(() => stateParts, [stateParts]);
 
   const [startDate, setStartDate] = useState('');
-  const [finishDate, setFinishDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [finishDate, setFinishDate] = useState('');
   const [motorcicleId, setMotorcicleId] = useState('');
   const [partId, setPartId] = useState('');
 
