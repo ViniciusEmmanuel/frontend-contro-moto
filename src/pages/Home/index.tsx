@@ -48,7 +48,11 @@ export const Home = () => {
           })}
 
           <li>
-            <a href="https://www.google.com.br" target="blank" className="link">
+            <a
+              href="http://www.controle-moto.dx.am/"
+              target="blank"
+              className="link"
+            >
               <button type="button">
                 <strong>Versão antiga</strong>
                 <FiArrowRight size={20} color="#018fe1" />
