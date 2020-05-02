@@ -65,11 +65,13 @@ export const ListMaintenance = () => {
   const [partId, setPartId] = useState('');
 
   useEffect(() => {
-    setStartDate(stateMaintenance.startDate);
-    setFinishDate(stateMaintenance.finishDate);
-    setMotorcicleId(stateMaintenance.motorcicleId);
-    setPartId(stateMaintenance.partId);
-  }, [stateMaintenance]);
+    if (!loading) {
+      setStartDate(stateMaintenance.startDate);
+      setFinishDate(stateMaintenance.finishDate);
+      setMotorcicleId(stateMaintenance.motorcicleId || '');
+      setPartId(stateMaintenance.partId || '');
+    }
+  }, [stateMaintenance, loading]);
 
   const handleSubmit: SubmitHandler<Iformdata> = async (data) => {
     dispatch(requestToListMaintenance(data));

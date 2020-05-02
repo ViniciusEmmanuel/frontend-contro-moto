@@ -60,10 +60,12 @@ export const ListGasoline = () => {
   const [motorcicleId, setMotorcicleId] = useState('');
 
   useEffect(() => {
-    setStartDate(stateGasoline.startDate);
-    setFinishDate(stateGasoline.finishDate);
-    setMotorcicleId(stateGasoline.motorcicleId);
-  }, [stateGasoline]);
+    if (!loading) {
+      setStartDate(stateGasoline.startDate);
+      setFinishDate(stateGasoline.finishDate);
+      setMotorcicleId(stateGasoline.motorcicleId);
+    }
+  }, [stateGasoline, loading]);
 
   const handleSubmit: SubmitHandler<Iformdata> = async (data) => {
     dispatch(requestToListGasoline(data));
