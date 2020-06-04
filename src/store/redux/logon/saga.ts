@@ -24,7 +24,7 @@ function* requestToLogon({ payload }: IAction<Ilogon>) {
     if (status === 201) {
       localStorage.setItem('@rwr/token', JSON.stringify(response.data.token));
 
-      api.defaults.headers['Authorization'] = `Bearer ${response.data.token}`;
+      api.defaults.headers.Authorization = `Bearer ${response.data.token}`;
 
       return yield put(
         responseToLogon({
@@ -36,7 +36,18 @@ function* requestToLogon({ payload }: IAction<Ilogon>) {
         })
       );
     }
+
     toast.error('Email ou senhas não conferem.');
+
+    return yield put(
+      responseToLogon({
+        auth: false,
+        name: '',
+        user: '',
+        token: '',
+        loading: false,
+      })
+    );
   } catch (error) {
     if (error.response) {
       const { message } = error.response.data;
