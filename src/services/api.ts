@@ -30,7 +30,7 @@ class Api {
   public request(): AxiosInstance {
     const token = localStorage.getItem('@rwr/token');
 
-    this.api.defaults.headers.common['Authorization'] = `Bearer ${JSON.parse(
+    this.api.defaults.headers.common.Authorization = `Bearer ${JSON.parse(
       token
     )}`;
 

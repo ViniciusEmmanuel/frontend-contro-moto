@@ -3,10 +3,10 @@ import React, { useCallback, useState, useMemo, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiTrash2, FiEdit, FiArrowLeft, FiLoader } from 'react-icons/fi';
 
-import api from '../../services/api';
-
 import { SubmitHandler } from '@unform/core';
 import { Form } from '@unform/web';
+import { toast } from 'react-toastify';
+import api from '../../services/api';
 
 import { Iresposnse } from '../../interfaces/api/IResponse';
 import { Istate, IinicialState } from '../../interfaces/redux/home';
@@ -18,7 +18,6 @@ import {
 import { Igasoline } from '../../interfaces/models/IGasoline';
 import { requestToListGasoline } from '../../store/redux/ListGasoline/actions';
 
-import { toast } from 'react-toastify';
 import { Button as ButtonForm } from '../../components/Button/styles';
 import { Input as InputForm } from '../../components/InputForm';
 import { Select as SelectForm } from '../../components/SelectForm';

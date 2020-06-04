@@ -1,12 +1,13 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 
+import { FiX } from 'react-icons/fi';
 import { closeModal } from '../../store/redux/Modal/actions';
 
 import { Istate, IinicialState } from '../../interfaces/redux/modal';
 
 import { Container, Content } from './styles';
-import { FiX } from 'react-icons/fi';
+
 export const Modal = () => {
   const dispatch = useDispatch();
 

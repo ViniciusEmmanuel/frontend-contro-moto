@@ -3,10 +3,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { SubmitHandler } from '@unform/core';
 import { Form } from '@unform/web';
 
-import api from '../../../../services/api';
 import * as yup from 'yup';
 import { toast } from 'react-toastify';
 import { FiLoader } from 'react-icons/fi';
+import api from '../../../../services/api';
 
 import { requestToListMaintenance } from '../../../../store/redux/ListMaintenance/actions';
 import {
@@ -100,8 +100,8 @@ export const ModalMaintenance = React.forwardRef(
         if (error instanceof yup.ValidationError) {
           const validationErrors = {};
 
-          error.inner.forEach((error) => {
-            validationErrors[error.path] = error.message;
+          error.inner.forEach((err) => {
+            validationErrors[err.path] = err.message;
           });
 
           formRef.current.setErrors(validationErrors);

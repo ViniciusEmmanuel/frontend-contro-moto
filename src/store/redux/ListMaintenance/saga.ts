@@ -1,7 +1,7 @@
 import { all, call, put, takeLatest } from 'redux-saga/effects';
 
-import { CONSTANTE } from './_CONSTANTS';
 import { toast } from 'react-toastify';
+import { CONSTANTE } from './_CONSTANTS';
 import api from '../../../services/api';
 import { responseToListMaintenance, loadingToListMaintenance } from './actions';
 import { Iresposnse } from '../../../interfaces/api/IResponse';
